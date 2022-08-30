@@ -67,7 +67,12 @@ public class DBInterface
 
     public ResultSet getCarBankData() throws SQLException
     {
-        String t_query = "SELECT * FROM raw_carbbank.structures;";
+        String t_query = "SELECT r5.*, r6.glytoucan_id FROM "
+                + "(SELECT r3.*, r4.structure_id FROM " + "(SELECT * FROM "
+                + "(SELECT * FROM remote_two.remote_structure WHERE resource='carbbank') as r1 "
+                + "LEFT JOIN raw_carbbank.structures as r2 ON r1.resource_id=r2.cc ) as r3 "
+                + "LEFT JOIN remote_two.remote_structure_has_structure as r4 ON r4.remote_structure_id=r3.remote_structure_id ) as r5 "
+                + "LEFT JOIN glygen.mapping as r6 ON r5.structure_id=r6.structure_id";
         ResultSet t_set = this.m_connection.createStatement().executeQuery(t_query);
         return t_set;
     }
