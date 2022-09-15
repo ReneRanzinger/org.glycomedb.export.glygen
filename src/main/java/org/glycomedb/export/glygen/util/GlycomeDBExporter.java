@@ -117,14 +117,13 @@ public class GlycomeDBExporter
             }
             else
             {
-                String t_strAM = t_set.getString("am");
+                String t_strAM = this.linearizeColumn(t_set.getString("am"));
                 String t_strBS = t_set.getString("bs");
                 String t_strMT = t_set.getString("mt");
                 String t_strPA = t_set.getString("pa");
                 String t_strPM = t_set.getString("pm");
-                if (this.isExportableRecord(t_strAM) && this.isExportableRecord(t_strBS)
-                        && this.isExportableRecord(t_strMT) && this.isExportableRecord(t_strPA)
-                        && this.isExportableRecord(t_strPM))
+                if (this.isExportableRecord(t_strBS) && this.isExportableRecord(t_strMT)
+                        && this.isExportableRecord(t_strPA) && this.isExportableRecord(t_strPM))
                 {
                     try
                     {
@@ -139,7 +138,18 @@ public class GlycomeDBExporter
                                 t_set.getString("ti"), t_set.getString("tn"), t_glycomeDB,
                                 t_glyTouCan, t_bsField.get(BiologicalSourceType.COMMON_NAME),
                                 t_bsField.get(BiologicalSourceType.ORGAN_TYPE),
-                                t_bsField.get(BiologicalSourceType.DISEASE));
+                                t_bsField.get(BiologicalSourceType.DISEASE),
+                                t_bsField.get(BiologicalSourceType.LIFE_STAGE),
+                                t_bsField.get(BiologicalSourceType.GENERAL_SPECIES),
+                                t_bsField.get(BiologicalSourceType.GT),
+                                t_bsField.get(BiologicalSourceType.SPECIES_CLASS),
+                                t_bsField.get(BiologicalSourceType.STAR),
+                                t_bsField.get(BiologicalSourceType.CELL_LINE),
+                                t_bsField.get(BiologicalSourceType.SPECIES_KINGDOM),
+                                t_bsField.get(BiologicalSourceType.SPECIES_DOMAIN),
+                                t_bsField.get(BiologicalSourceType.BS),
+                                t_bsField.get(BiologicalSourceType.F),
+                                t_bsField.get(BiologicalSourceType.O));
                     }
                     catch (IOException e)
                     {
@@ -162,6 +172,17 @@ public class GlycomeDBExporter
                 + t_counterMultiLineRecord.toString() + "\n");
     }
 
+    private String linearizeColumn(String a_string)
+    {
+        if (a_string == null)
+        {
+            return a_string;
+        }
+        String t_result = a_string.replaceAll("\\n", "|");
+        t_result = t_result.replaceAll("\\r", "");
+        return t_result;
+    }
+
     private HashMap<BiologicalSourceType, String> splitBSfield(String a_strBS) throws IOException
     {
         HashMap<BiologicalSourceType, String> t_result = new HashMap<>();
@@ -172,32 +193,37 @@ public class GlycomeDBExporter
         String t_bs = a_strBS.trim();
         if (t_bs.length() != 0)
         {
-            String[] t_parts = a_strBS.split("(");
+            String[] t_parts = a_strBS.split("\\(");
             if (t_parts.length < 2)
             {
                 throw new IOException("Unknown BS field pattern: " + a_strBS);
             }
             for (String t_subString : t_parts)
             {
-                Integer t_index = t_subString.indexOf(")");
-                if (t_index == -1)
+                if (t_subString.trim().length() != 0)
                 {
-                    throw new IOException(
-                            "Can not find closing parethesis in BS field pattern: " + a_strBS);
+                    Integer t_index = t_subString.indexOf(")");
+                    if (t_index == -1)
+                    {
+                        throw new IOException(
+                                "Can not find closing parethesis in BS field pattern: " + a_strBS);
+                    }
+                    String t_type = t_subString.substring(0, t_index);
+                    BiologicalSourceType t_enumType = BiologicalSourceType.forString(t_type);
+                    if (t_enumType == null)
+                    {
+                        throw new IOException(
+                                "Unknown biological source type (" + t_type + ") in: " + a_strBS);
+                    }
+                    if (t_result.get(t_enumType) != null)
+                    {
+                        throw new IOException(
+                                "Dublicate biological source type (" + t_type + ") in: " + a_strBS);
+                    }
+                    String t_cleanedString = t_subString.substring(t_index + 1);
+                    t_cleanedString = t_cleanedString.replaceAll(",", "");
+                    t_result.put(t_enumType, t_cleanedString);
                 }
-                String t_type = t_subString.substring(0, t_index);
-                BiologicalSourceType t_enumType = BiologicalSourceType.forString(t_type);
-                if (t_enumType == null)
-                {
-                    throw new IOException(
-                            "Unknown biological source type (" + t_type + ") in: " + a_strBS);
-                }
-                if (t_result.get(t_enumType) != null)
-                {
-                    throw new IOException(
-                            "Dublicate biological source type (" + t_type + ") in: " + a_strBS);
-                }
-                t_result.put(t_enumType, t_subString.substring(t_index));
             }
         }
         return t_result;

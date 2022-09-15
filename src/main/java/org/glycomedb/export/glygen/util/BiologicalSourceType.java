@@ -2,7 +2,9 @@ package org.glycomedb.export.glygen.util;
 
 public enum BiologicalSourceType
 {
-    COMMON_NAME("CN"), ORGAN_TYPE("OT"), DISEASE("disease");
+    COMMON_NAME("CN"), ORGAN_TYPE("OT"), DISEASE("disease"), LIFE_STAGE("LS"), GENERAL_SPECIES(
+            "GS"), GT("GT"), CELL_LINE("cell line"), STAR("*"), SPECIES_CLASS(
+                    "C"), SPECIES_KINGDOM("K"), SPECIES_DOMAIN("domain"), BS("BS"), F("F"), O("O");
 
     private String m_key;
 
