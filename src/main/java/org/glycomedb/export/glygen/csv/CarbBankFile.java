@@ -9,7 +9,7 @@ public class CarbBankFile extends CSVFile
         super();
         this.m_header = new String[] { "CC", "AG", "AM", "AN", "AU", "BA", "BS", "CT", "DA", "DB",
                 "MT", "NC", "NT", "PA", "PM", "SB", "SC", "SI", "ST", "TI", "TN", "GlycomeDB ID",
-                "GlyTouCan Acc" };
+                "GlyTouCan Acc", "BS-CN", "BS-OT", "BS-disease" };
         this.openFile(a_fileNamePath);
     }
 
@@ -18,9 +18,10 @@ public class CarbBankFile extends CSVFile
             String a_date, String a_crossref, String a_glycanType, String a_nc, String a_notes,
             String a_proteinAttachement, String a_proteinName, String a_curator,
             String a_structureCode, String a_cbank, String a_synthetic, String a_title,
-            String a_gName, String a_glycomeDB, String a_glyTouCan)
+            String a_gName, String a_glycomeDB, String a_glyTouCan, String a_bsCN, String a_bsOT,
+            String a_bsDisease)
     {
-        String[] t_line = new String[23];
+        String[] t_line = new String[26];
         t_line[0] = this.addString(a_recordID);
         t_line[1] = this.addString(a_aglycon);
         t_line[2] = this.addString(a_method);
@@ -44,7 +45,9 @@ public class CarbBankFile extends CSVFile
         t_line[20] = this.addString(a_gName);
         t_line[21] = this.addString(a_glycomeDB);
         t_line[22] = this.addString(a_glyTouCan);
-
+        t_line[23] = this.addString(a_bsCN);
+        t_line[24] = this.addString(a_bsOT);
+        t_line[25] = this.addString(a_bsDisease);
         this.m_csvWriter.writeNext(t_line);
     }
 

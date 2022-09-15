@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 
 import org.glycomedb.export.glygen.csv.CarbBankFile;
@@ -92,6 +93,7 @@ public class GlycomeDBExporter
         System.out.println("Export CarbBank data");
         Integer t_counterNull = 0;
         Integer t_counterHash = 0;
+        Integer t_counterMultiLineRecord = 0;
         Integer t_counterNoGlycomeDB = 0;
         ResultSet t_set = this.m_db.getCarBankData();
         String t_fileNamePath = "." + File.separator + "export" + File.separator + "carbbank.csv";
@@ -115,14 +117,39 @@ public class GlycomeDBExporter
             }
             else
             {
-                t_carbbankFile.write(t_set.getString("cc"), t_set.getString("ag"),
-                        t_set.getString("am"), t_set.getString("an"), t_set.getString("au"),
-                        t_set.getString("ba"), t_set.getString("bs"), t_set.getString("ct"),
-                        t_set.getString("da"), t_set.getString("db"), t_set.getString("mt"),
-                        t_set.getString("nc"), t_set.getString("nt"), t_set.getString("pa"),
-                        t_set.getString("pm"), t_set.getString("sb"), t_set.getString("sc"),
-                        t_set.getString("si"), t_set.getString("st"), t_set.getString("ti"),
-                        t_set.getString("tn"), t_glycomeDB, t_glyTouCan);
+                String t_strAM = t_set.getString("am");
+                String t_strBS = t_set.getString("bs");
+                String t_strMT = t_set.getString("mt");
+                String t_strPA = t_set.getString("pa");
+                String t_strPM = t_set.getString("pm");
+                if (this.isExportableRecord(t_strAM) && this.isExportableRecord(t_strBS)
+                        && this.isExportableRecord(t_strMT) && this.isExportableRecord(t_strPA)
+                        && this.isExportableRecord(t_strPM))
+                {
+                    try
+                    {
+                        HashMap<BiologicalSourceType, String> t_bsField = this
+                                .splitBSfield(t_strBS);
+                        t_carbbankFile.write(t_set.getString("cc"), t_set.getString("ag"), t_strAM,
+                                t_set.getString("an"), t_set.getString("au"), t_set.getString("ba"),
+                                t_strBS, t_set.getString("ct"), t_set.getString("da"),
+                                t_set.getString("db"), t_strMT, t_set.getString("nc"),
+                                t_set.getString("nt"), t_strPA, t_strPM, t_set.getString("sb"),
+                                t_set.getString("sc"), t_set.getString("si"), t_set.getString("st"),
+                                t_set.getString("ti"), t_set.getString("tn"), t_glycomeDB,
+                                t_glyTouCan, t_bsField.get(BiologicalSourceType.COMMON_NAME),
+                                t_bsField.get(BiologicalSourceType.ORGAN_TYPE),
+                                t_bsField.get(BiologicalSourceType.DISEASE));
+                    }
+                    catch (IOException e)
+                    {
+                        System.out.println(t_set.getString("cc") + ": " + e.getMessage());
+                    }
+                }
+                else
+                {
+                    t_counterMultiLineRecord++;
+                }
             }
         }
         t_carbbankFile.closeFile();
@@ -130,7 +157,69 @@ public class GlycomeDBExporter
         System.out.println(
                 "\tNumber of structures without GlyTouCan ID: " + t_counterNull.toString());
         System.out.println(
-                "\tNumber of structures with GlyTouCan Hash : " + t_counterHash.toString() + "\n");
+                "\tNumber of structures with GlyTouCan Hash : " + t_counterHash.toString());
+        System.out.println("\tNumber of structures with multiline columns : "
+                + t_counterMultiLineRecord.toString() + "\n");
+    }
+
+    private HashMap<BiologicalSourceType, String> splitBSfield(String a_strBS) throws IOException
+    {
+        HashMap<BiologicalSourceType, String> t_result = new HashMap<>();
+        if (a_strBS == null)
+        {
+            return t_result;
+        }
+        String t_bs = a_strBS.trim();
+        if (t_bs.length() != 0)
+        {
+            String[] t_parts = a_strBS.split("(");
+            if (t_parts.length < 2)
+            {
+                throw new IOException("Unknown BS field pattern: " + a_strBS);
+            }
+            for (String t_subString : t_parts)
+            {
+                Integer t_index = t_subString.indexOf(")");
+                if (t_index == -1)
+                {
+                    throw new IOException(
+                            "Can not find closing parethesis in BS field pattern: " + a_strBS);
+                }
+                String t_type = t_subString.substring(0, t_index);
+                BiologicalSourceType t_enumType = BiologicalSourceType.forString(t_type);
+                if (t_enumType == null)
+                {
+                    throw new IOException(
+                            "Unknown biological source type (" + t_type + ") in: " + a_strBS);
+                }
+                if (t_result.get(t_enumType) != null)
+                {
+                    throw new IOException(
+                            "Dublicate biological source type (" + t_type + ") in: " + a_strBS);
+                }
+                t_result.put(t_enumType, t_subString.substring(t_index));
+            }
+        }
+        return t_result;
+    }
+
+    private boolean isExportableRecord(String a_string)
+    {
+        if (a_string == null)
+        {
+            return true;
+        }
+        String t_string = a_string.trim();
+        if (t_string.length() == 0)
+        {
+            return true;
+        }
+        String[] t_parts = t_string.split("\\n");
+        if (t_parts.length > 1)
+        {
+            return false;
+        }
+        return true;
     }
 
 }
