@@ -118,6 +118,8 @@ public class GlycomeDBExporter
             else
             {
                 String t_strAM = this.linearizeColumn(t_set.getString("am"));
+                String t_strDB = this.linearizeColumn(t_set.getString("db"));
+                String t_strAN = this.linearizeColumn(t_set.getString("an"));
                 String t_strBS = t_set.getString("bs");
                 String t_strMT = t_set.getString("mt");
                 String t_strPA = t_set.getString("pa");
@@ -130,13 +132,13 @@ public class GlycomeDBExporter
                         HashMap<BiologicalSourceType, String> t_bsField = this
                                 .splitBSfield(t_strBS);
                         t_carbbankFile.write(t_set.getString("cc"), t_set.getString("ag"), t_strAM,
-                                t_set.getString("an"), t_set.getString("au"), t_set.getString("ba"),
-                                t_strBS, t_set.getString("ct"), t_set.getString("da"),
-                                t_set.getString("db"), t_strMT, t_set.getString("nc"),
-                                t_set.getString("nt"), t_strPA, t_strPM, t_set.getString("sb"),
-                                t_set.getString("sc"), t_set.getString("si"), t_set.getString("st"),
-                                t_set.getString("ti"), t_set.getString("tn"), t_glycomeDB,
-                                t_glyTouCan, t_bsField.get(BiologicalSourceType.COMMON_NAME),
+                                t_strAN, t_set.getString("au"), t_set.getString("ba"), t_strBS,
+                                t_set.getString("ct"), t_set.getString("da"), t_strDB, t_strMT,
+                                t_set.getString("nc"), t_set.getString("nt"), t_strPA, t_strPM,
+                                t_set.getString("sb"), t_set.getString("sc"), t_set.getString("si"),
+                                t_set.getString("st"), t_set.getString("ti"), t_set.getString("tn"),
+                                t_glycomeDB, t_glyTouCan,
+                                t_bsField.get(BiologicalSourceType.COMMON_NAME),
                                 t_bsField.get(BiologicalSourceType.ORGAN_TYPE),
                                 t_bsField.get(BiologicalSourceType.DISEASE),
                                 t_bsField.get(BiologicalSourceType.LIFE_STAGE),
